@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VoiceGenerator", "VoiceGenerator.vcxproj", "{92A0C1C0-114E-4FDC-8E56-616A5EE1A243}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XFVoiceTool", "XFVoiceTool\XFVoiceTool.vcxproj", "{4621B6A2-FD0B-44C2-B5D9-754FEC420E73}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92A0C1C0-114E-4FDC-8E56-616A5EE1A243}.Debug|Win32.ActiveCfg = Debug|Win32
+		{92A0C1C0-114E-4FDC-8E56-616A5EE1A243}.Debug|Win32.Build.0 = Debug|Win32
+		{92A0C1C0-114E-4FDC-8E56-616A5EE1A243}.Release|Win32.ActiveCfg = Release|Win32
+		{92A0C1C0-114E-4FDC-8E56-616A5EE1A243}.Release|Win32.Build.0 = Release|Win32
+		{4621B6A2-FD0B-44C2-B5D9-754FEC420E73}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4621B6A2-FD0B-44C2-B5D9-754FEC420E73}.Debug|Win32.Build.0 = Debug|Win32
+		{4621B6A2-FD0B-44C2-B5D9-754FEC420E73}.Release|Win32.ActiveCfg = Release|Win32
+		{4621B6A2-FD0B-44C2-B5D9-754FEC420E73}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
