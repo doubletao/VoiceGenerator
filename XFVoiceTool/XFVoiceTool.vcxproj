@@ -59,7 +59,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>.\XFVoiceTool.def</ModuleDefinitionFile>
-      <ImportLibrary>../lib/$(TargetName)D.lib</ImportLibrary>
+      <ImportLibrary>../lib/$(TargetName).lib</ImportLibrary>
+      <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -87,6 +88,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>.\XFVoiceTool.def</ModuleDefinitionFile>
       <ImportLibrary>../lib/$(TargetName).lib</ImportLibrary>
+      <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -108,13 +110,19 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SYGlobalFunction.cpp" />
+    <ClCompile Include="XFVoiceApi.cpp" />
+    <ClCompile Include="XFVoiceHelper.cpp" />
     <ClCompile Include="XFVoiceTool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\XFVoiceTool.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SYGlobalFunction.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="XFVoiceApi.h" />
+    <ClInclude Include="XFVoiceHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="XFVoiceTool.rc" />

@@ -30,6 +30,15 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="XFVoiceHelper.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SYGlobalFunction.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XFVoiceApi.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -42,6 +51,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\include\XFVoiceTool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XFVoiceHelper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SYGlobalFunction.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XFVoiceApi.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

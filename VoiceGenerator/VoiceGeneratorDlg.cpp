@@ -6,6 +6,7 @@
 #include "VoiceGenerator.h"
 #include "VoiceGeneratorDlg.h"
 #include "afxdialogex.h"
+#include "..\include\XFVoiceTool.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -98,6 +99,10 @@ BOOL CVoiceGeneratorDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	SYCG_XFVoive_Excute(_T(""), _T(""));
+	std::vector<CString> vecStr;
+	std::vector<DWORD> vecDw;
+	SYCG_XFVoive_CombineAudioFile(vecStr, vecDw, 0, _T(""));
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
