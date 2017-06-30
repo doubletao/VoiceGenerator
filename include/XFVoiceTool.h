@@ -16,3 +16,4 @@
 #endif
 
 #include "..\XFVoiceTool\XFVoiceApi.h"
+#include "..\XFVoiceTool\SYGlobalFunction.h"

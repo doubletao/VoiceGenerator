@@ -12,7 +12,7 @@
 using std::string;
 using std::queue;
 
-class SYCGlobalFunction
+class XFVOICE_TOOL_API SYCGlobalFunction
 {
 public:
 	static CString GetNewGUID();//生成新的GUID
@@ -57,7 +57,7 @@ public:
 	static BOOL CopyFileOrPath(CString strDesPath, CString strSrcPath);//拷贝文件（夹）
 };
 
-class CLogProcessor
+class XFVOICE_TOOL_API CLogProcessor
 {
 private:
 	queue<CString> m_queStrLogs;
@@ -92,7 +92,7 @@ public:
 #endif
 
 //时间调试器类，在构造时记下当前cpu时钟，在析构时输出其生命周期时长，用来进行耗时调试
-class TimerRecorder
+class XFVOICE_TOOL_API TimerRecorder
 {
 	friend class CLogProcessor;
 private:

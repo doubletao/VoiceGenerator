@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include <vector>
 
 // CVoiceGeneratorDlg 对话框
 class CVoiceGeneratorDlg : public CDialogEx
@@ -22,11 +22,18 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
+	BOOL m_bIsPlaying;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
+	void GenerateAudio(std::vector<CString> vecStrContent);
+
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnBnClickedBtnGenerate();
+	afx_msg void OnBnClickedBtnListen();
+	afx_msg void OnBnClickedBtnOpenPath();
 };

@@ -7,6 +7,8 @@
 #include "VoiceGeneratorDlg.h"
 #include "afxdialogex.h"
 #include "..\include\XFVoiceTool.h"
+#include <mmsystem.h>
+#pragma comment(lib, "WINMM.LIB")
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -51,6 +53,7 @@ END_MESSAGE_MAP()
 
 CVoiceGeneratorDlg::CVoiceGeneratorDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CVoiceGeneratorDlg::IDD, pParent)
+	, m_bIsPlaying(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -64,10 +67,40 @@ BEGIN_MESSAGE_MAP(CVoiceGeneratorDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_BTN_GENERATE, &CVoiceGeneratorDlg::OnBnClickedBtnGenerate)
+	ON_BN_CLICKED(IDC_BTN_LISTEN, &CVoiceGeneratorDlg::OnBnClickedBtnListen)
+	ON_BN_CLICKED(IDC_BTN_OPEN_PATH, &CVoiceGeneratorDlg::OnBnClickedBtnOpenPath)
 END_MESSAGE_MAP()
 
 
 // CVoiceGeneratorDlg 消息处理程序
+
+void CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent)
+{
+	CString strBinPath = SYCGlobalFunction::GetCurPath();
+	CString strAudioPath = strBinPath + _T("\\Audio\\");
+	CString strErr;
+	SYCGlobalFunction::MakeSureDirectoryExists(strAudioPath, strErr);
+	std::vector<DWORD> vecDwGap;
+	std::vector<CString> vecFileList;
+	for (int i = 0; i < vecStrContent.size(); i++)
+	{
+		CString strContent = vecStrContent[i];
+		CString strFilePath;
+		strFilePath.Format(_T("%s%s.wav"), strAudioPath, strContent);
+		if (!SYCGlobalFunction::IsFileExists(strFilePath))
+		{
+			XunFei_Voive_Excute(strFilePath, strContent);
+		}
+		vecDwGap.push_back(50);
+		vecFileList.push_back(strFilePath);
+	}
+	if (vecFileList.size() > 0
+		&& vecFileList.size() == vecDwGap.size())
+	{
+	}
+	XunFei_Voive_CombineAudioFile(vecFileList, vecDwGap, 0, strAudioPath + _T("combined.wav"));
+}
 
 BOOL CVoiceGeneratorDlg::OnInitDialog()
 {
@@ -97,12 +130,6 @@ BOOL CVoiceGeneratorDlg::OnInitDialog()
 	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
-
-	// TODO: 在此添加额外的初始化代码
-	SYCG_XFVoive_Excute(_T(""), _T(""));
-	std::vector<CString> vecStr;
-	std::vector<DWORD> vecDw;
-	SYCG_XFVoive_CombineAudioFile(vecStr, vecDw, 0, _T(""));
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -156,3 +183,49 @@ HCURSOR CVoiceGeneratorDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
+{
+	CEdit * pEditSrc = (CEdit *)GetDlgItem(IDC_EDIT_CONTENT);
+	if (pEditSrc && ::IsWindow(pEditSrc->GetSafeHwnd()))
+	{
+		//从两个控件中获取非空行
+		std::vector<CString> vecContent;
+		std::set<TCHAR> setMark;
+		setMark.insert(_T('\n'));
+		CString strTmp;
+		pEditSrc->GetWindowText(strTmp);
+		strTmp.Replace(_T('\r'), _T(''));
+		std::vector<CString> vecStrContent = SYCGlobalFunction::SplitCString(strTmp, setMark, FALSE);
+		GenerateAudio(vecStrContent);
+	}
+}
+
+
+void CVoiceGeneratorDlg::OnBnClickedBtnListen()
+{
+	if (m_bIsPlaying)
+	{
+		PlaySound(NULL, NULL, NULL);
+		m_bIsPlaying = FALSE;
+	}
+	else
+	{
+		CString strFile = SYCGlobalFunction::GetCurPath() + _T("\\Audio\\combined.wav");
+		if (SYCGlobalFunction::IsFileExists(strFile))
+		{
+			PlaySound(strFile, NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+			m_bIsPlaying = TRUE;
+		}
+	}
+}
+
+
+void CVoiceGeneratorDlg::OnBnClickedBtnOpenPath()
+{
+	CString strPath = SYCGlobalFunction::GetCurPath() + _T("\\Audio\\");
+	CString strErr;
+	SYCGlobalFunction::MakeSureDirectoryExists(strPath, strErr);
+	ShellExecute(NULL, _T("open"), strPath, NULL, strPath, SW_SHOWNORMAL);
+}
