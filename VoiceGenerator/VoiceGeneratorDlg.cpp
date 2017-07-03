@@ -75,7 +75,7 @@ END_MESSAGE_MAP()
 
 // CVoiceGeneratorDlg 消息处理程序
 
-void CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent)
+void CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName/* = _T("xiaoyan")*/, DWORD dwSpeed/* = 50*/, DWORD dwPitch/* = 50*/)
 {
 	CString strBinPath = SYCGlobalFunction::GetCurPath();
 	CString strAudioPath = strBinPath + _T("\\Audio\\");
@@ -88,18 +88,22 @@ void CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent)
 		CString strContent = vecStrContent[i];
 		CString strFilePath;
 		strFilePath.Format(_T("%s%s.wav"), strAudioPath, strContent);
-		if (!SYCGlobalFunction::IsFileExists(strFilePath))
+		if (SYCGlobalFunction::IsFileExists(strFilePath))
 		{
-			XunFei_Voive_Excute(strFilePath, strContent);
+			::DeleteFile(strFilePath);
 		}
-		vecDwGap.push_back(50);
-		vecFileList.push_back(strFilePath);
+		XunFei_Voive_Excute(strFilePath, strContent, strVoiceName, dwSpeed, dwPitch);
+		if (SYCGlobalFunction::IsFileExists(strFilePath))
+		{
+			vecDwGap.push_back(50);
+			vecFileList.push_back(strFilePath);
+		}
 	}
 	if (vecFileList.size() > 0
 		&& vecFileList.size() == vecDwGap.size())
 	{
+		XunFei_Voive_CombineAudioFile(vecFileList, vecDwGap, 0, strAudioPath + _T("combined.wav"));
 	}
-	XunFei_Voive_CombineAudioFile(vecFileList, vecDwGap, 0, strAudioPath + _T("combined.wav"));
 }
 
 BOOL CVoiceGeneratorDlg::OnInitDialog()
@@ -124,6 +128,50 @@ BOOL CVoiceGeneratorDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_SEPARATOR);
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
+	}
+
+	GetDlgItem(IDC_EDIT_SPEED)->SetWindowText(_T("50"));
+	GetDlgItem(IDC_EDIT_PITCH)->SetWindowText(_T("50"));
+	CComboBox * pCombo = (CComboBox *)GetDlgItem(IDC_COMBO_VOICER);
+	if (pCombo)
+	{
+		pCombo->AddString(_T("xiaoyan"));
+		pCombo->AddString(_T("xiaofeng"));
+		pCombo->AddString(_T("xiaoqi"));
+		pCombo->AddString(_T("vinn"));
+		pCombo->AddString(_T("vils"));
+		pCombo->AddString(_T("aisjiuxu"));
+		pCombo->AddString(_T("aisxping"));
+		pCombo->AddString(_T("aisjying"));
+		pCombo->AddString(_T("aisbabyxu"));
+		pCombo->AddString(_T("aisjinger"));
+		pCombo->AddString(_T("yefang"));
+		pCombo->AddString(_T("aisduck"));
+		pCombo->AddString(_T("aisxmeng"));
+		pCombo->AddString(_T("aismengchun"));
+		pCombo->AddString(_T("ziqi"));
+		pCombo->AddString(_T("aisduoxu"));
+		pCombo->AddString(_T("xiaoxin"));
+		pCombo->AddString(_T("xiaowanzi"));
+		pCombo->AddString(_T("dalong"));
+		pCombo->AddString(_T("xiaomei"));
+		pCombo->AddString(_T("aisxlin"));
+		pCombo->AddString(_T("xiaoqian"));
+		pCombo->AddString(_T("aisxrong"));
+		pCombo->AddString(_T("xiaokun"));
+		pCombo->AddString(_T("aisxqiang"));
+		pCombo->AddString(_T("aisxying"));
+		pCombo->AddString(_T("aiscatherine"));
+		pCombo->AddString(_T("vimary"));
+		pCombo->AddString(_T("henry"));
+		pCombo->AddString(_T("aistom"));
+		pCombo->AddString(_T("aisjohn"));
+		pCombo->AddString(_T("mariane"));
+		pCombo->AddString(_T("allabent"));
+		pCombo->AddString(_T("gabriela"));
+		pCombo->AddString(_T("abha"));
+		pCombo->AddString(_T("xiaoyun"));
+		pCombo->SetCurSel(0);
 	}
 
 	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
@@ -187,9 +235,24 @@ HCURSOR CVoiceGeneratorDlg::OnQueryDragIcon()
 
 void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
 {
+	CEdit * pEditSpeed = (CEdit *)GetDlgItem(IDC_EDIT_SPEED);
+	CEdit * pEditPitch = (CEdit *)GetDlgItem(IDC_EDIT_PITCH);
+	CComboBox * pComboVoicer = (CComboBox *)GetDlgItem(IDC_COMBO_VOICER);
 	CEdit * pEditSrc = (CEdit *)GetDlgItem(IDC_EDIT_CONTENT);
-	if (pEditSrc && ::IsWindow(pEditSrc->GetSafeHwnd()))
+	if (pEditSrc && ::IsWindow(pEditSrc->GetSafeHwnd())
+		&& pEditSpeed && ::IsWindow(pEditSpeed->GetSafeHwnd())
+		&& pEditPitch && ::IsWindow(pEditPitch->GetSafeHwnd())
+		&& pComboVoicer && ::IsWindow(pComboVoicer->GetSafeHwnd())
+		)
 	{
+		CString strVoicer;
+		pComboVoicer->GetWindowText(strVoicer);
+		CString strSpeed;
+		pEditSpeed->GetWindowText(strSpeed);
+		DWORD dwSpeed = SYCGlobalFunction::ConvertCStringToInt(strSpeed);
+		CString strPitch;
+		pEditPitch->GetWindowText(strPitch);
+		DWORD dwPitch = SYCGlobalFunction::ConvertCStringToInt(strPitch);
 		//从两个控件中获取非空行
 		std::vector<CString> vecContent;
 		std::set<TCHAR> setMark;
@@ -198,7 +261,8 @@ void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
 		pEditSrc->GetWindowText(strTmp);
 		strTmp.Replace(_T('\r'), _T(''));
 		std::vector<CString> vecStrContent = SYCGlobalFunction::SplitCString(strTmp, setMark, FALSE);
-		GenerateAudio(vecStrContent);
+		GenerateAudio(vecStrContent, strVoicer, dwSpeed, dwPitch);
+		OnBnClickedBtnListen();
 	}
 }
 

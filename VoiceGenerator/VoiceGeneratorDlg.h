@@ -26,7 +26,7 @@ protected:
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
-	void GenerateAudio(std::vector<CString> vecStrContent);
+	void GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName = _T("xiaoyan"), DWORD dwSpeed = 50, DWORD dwPitch = 50);
 
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
