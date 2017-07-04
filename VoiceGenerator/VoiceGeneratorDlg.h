@@ -38,4 +38,5 @@ public:
 	afx_msg void OnBnClickedBtnGenerate();
 	afx_msg void OnBnClickedBtnListen();
 	afx_msg void OnBnClickedBtnOpenPath();
+	afx_msg void OnBnClickedBtnOpenfile();
 };

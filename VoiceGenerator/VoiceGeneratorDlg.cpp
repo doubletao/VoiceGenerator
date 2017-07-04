@@ -72,6 +72,7 @@ BEGIN_MESSAGE_MAP(CVoiceGeneratorDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_GENERATE, &CVoiceGeneratorDlg::OnBnClickedBtnGenerate)
 	ON_BN_CLICKED(IDC_BTN_LISTEN, &CVoiceGeneratorDlg::OnBnClickedBtnListen)
 	ON_BN_CLICKED(IDC_BTN_OPEN_PATH, &CVoiceGeneratorDlg::OnBnClickedBtnOpenPath)
+	ON_BN_CLICKED(IDC_BTN_OPENFILE, &CVoiceGeneratorDlg::OnBnClickedBtnOpenfile)
 END_MESSAGE_MAP()
 
 
@@ -313,4 +314,35 @@ void CVoiceGeneratorDlg::OnBnClickedBtnOpenPath()
 	CString strErr;
 	SYCGlobalFunction::MakeSureDirectoryExists(strPath, strErr);
 	ShellExecute(NULL, _T("open"), strPath, NULL, strPath, SW_SHOWNORMAL);
+}
+
+
+void CVoiceGeneratorDlg::OnBnClickedBtnOpenfile()
+{
+	CFileDialog dlg(TRUE, _T("*.txt"), NULL, OFN_FILEMUSTEXIST, _T("*.txt|*.txt||"), NULL);
+	if (dlg.DoModal() == IDOK)
+	{
+		CEdit * pEditSrc = (CEdit *)GetDlgItem(IDC_EDIT_CONTENT);
+		if (pEditSrc && ::IsWindow(pEditSrc->GetSafeHwnd()))
+		{
+			pEditSrc->SetWindowText(_T(""));
+			CString strFile = dlg.GetPathName();
+			TCHAR* old_locale = _tcsdup( _tsetlocale(LC_CTYPE,NULL) );
+			_tsetlocale( LC_CTYPE, _T("chs"));
+			CStdioFile file;
+			if (file.Open(strFile, CFile::modeRead))
+			{
+				CString strBuffer;
+				while(file.ReadString(strBuffer))
+				{
+					int nLength = pEditSrc->SendMessage(WM_GETTEXTLENGTH);
+					pEditSrc->SetSel(nLength,  nLength);
+					pEditSrc->ReplaceSel(strBuffer + _T("\r\n"));
+				}
+				file.Close();
+			}
+			_tsetlocale( LC_CTYPE, old_locale );
+			free( old_locale );
+		}
+	}
 }
