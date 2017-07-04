@@ -63,6 +63,7 @@ CVoiceGeneratorDlg::CVoiceGeneratorDlg(CWnd* pParent /*=NULL*/)
 void CVoiceGeneratorDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_PROGRESS_GENERATE, m_ctrProgress);
 }
 
 BEGIN_MESSAGE_MAP(CVoiceGeneratorDlg, CDialogEx)
@@ -73,13 +74,17 @@ BEGIN_MESSAGE_MAP(CVoiceGeneratorDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_LISTEN, &CVoiceGeneratorDlg::OnBnClickedBtnListen)
 	ON_BN_CLICKED(IDC_BTN_OPEN_PATH, &CVoiceGeneratorDlg::OnBnClickedBtnOpenPath)
 	ON_BN_CLICKED(IDC_BTN_OPENFILE, &CVoiceGeneratorDlg::OnBnClickedBtnOpenfile)
+	ON_WM_SIZE()
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
 // CVoiceGeneratorDlg 消息处理程序
 
+const int MAX_XUNFEI_WORDS = 50;//讯飞单次最大装载字符数
 BOOL CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName/* = _T("xiaoyan")*/, DWORD dwSpeed/* = 50*/, DWORD dwPitch/* = 50*/)
 {
+	m_ctrProgress.SetPos(0);
 	BOOL bRet = FALSE;
 	CString strBinPath = SYCGlobalFunction::GetCurPath();
 	CString strAudioPath = strBinPath + _T("\\Audio\\");
@@ -90,19 +95,28 @@ BOOL CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CStri
 	for (int i = 0; i < vecStrContent.size(); i++)
 	{
 		CString strContent = vecStrContent[i];
-		CString strFilePath;
-		strFilePath.Format(_T("%s%d.wav"), strAudioPath, i);
-		if (SYCGlobalFunction::IsFileExists(strFilePath))
+		//单句字数过长则切分
+		if (strContent.GetLength() > MAX_XUNFEI_WORDS)
 		{
-			::DeleteFile(strFilePath);
+			CString strSplit;
+			while(strContent.GetLength() > MAX_XUNFEI_WORDS)
+			{
+				strSplit = strContent.Left(MAX_XUNFEI_WORDS);
+				strContent = strContent.Mid(MAX_XUNFEI_WORDS);
+				GenerateOneContent(strAudioPath, strSplit, strVoiceName, dwSpeed, dwPitch, vecDwGap, vecFileList);
+			}
+			if (strContent.GetLength() > 0)
+			{
+				GenerateOneContent(strAudioPath, strContent, strVoiceName, dwSpeed, dwPitch, vecDwGap, vecFileList);
+			}
 		}
-		XunFei_Voive_Excute(strFilePath, strContent, strVoiceName, dwSpeed, dwPitch);
-		if (SYCGlobalFunction::IsFileExists(strFilePath))
+		else
 		{
-			vecDwGap.push_back(50);
-			vecFileList.push_back(strFilePath);
+			GenerateOneContent(strAudioPath, strContent, strVoiceName, dwSpeed, dwPitch, vecDwGap, vecFileList);
 		}
+		m_ctrProgress.SetPos(i * 100.0 / vecStrContent.size());
 	}
+	m_ctrProgress.SetPos(100);
 	CString strRetFile = strAudioPath + _T("combined.wav");
 	if (SYCGlobalFunction::IsFileExists(strRetFile))
 	{
@@ -118,6 +132,25 @@ BOOL CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CStri
 		bRet = TRUE;
 	}
 	return bRet;
+}
+
+void CVoiceGeneratorDlg::GenerateOneContent(CString strAudioPath, CString strContent, CString strVoiceName, DWORD dwSpeed, DWORD dwPitch, std::vector<DWORD> &vecDwGap, std::vector<CString> &vecFileList)
+{
+	if (!strContent.IsEmpty())
+	{
+		CString strFilePath;
+		strFilePath.Format(_T("%s%s.wav"), strAudioPath, SYCGlobalFunction::GetNewGUID());
+		if (SYCGlobalFunction::IsFileExists(strFilePath))
+		{
+			::DeleteFile(strFilePath);
+		}
+		XunFei_Voive_Excute(strFilePath, strContent, strVoiceName, dwSpeed, dwPitch);
+		if (SYCGlobalFunction::IsFileExists(strFilePath))
+		{
+			vecDwGap.push_back(50);
+			vecFileList.push_back(strFilePath);
+		}
+	}
 }
 
 void CVoiceGeneratorDlg::ReadConfig()
@@ -187,6 +220,89 @@ void CVoiceGeneratorDlg::ReadConfig()
 	}
 }
 
+void CVoiceGeneratorDlg::InitialLayout()
+{
+	CWnd * pStcXunfei = GetDlgSafeItem(IDC_STATIC1);
+	CWnd * pStcVoice = GetDlgSafeItem(IDC_STATIC2);
+	CWnd * pCombVoicer = GetDlgSafeItem(IDC_COMBO_VOICER);
+	CWnd * pStcSpeed = GetDlgSafeItem(IDC_STATIC3);
+	CWnd * pEditSpeed = GetDlgSafeItem(IDC_EDIT_SPEED);
+	CWnd * pStcPitch = GetDlgSafeItem(IDC_STATIC4);
+	CWnd * pEditPitch = GetDlgSafeItem(IDC_EDIT_PITCH);
+	CWnd * pEditContent = GetDlgSafeItem(IDC_EDIT_CONTENT);
+	CWnd * pBtnLoadFile = GetDlgSafeItem(IDC_BTN_OPENFILE);
+	CWnd * pBtnOpenPath = GetDlgSafeItem(IDC_BTN_OPEN_PATH);
+	CWnd * pBtnGenerate = GetDlgSafeItem(IDC_BTN_GENERATE);
+	CWnd * pBtnListen = GetDlgSafeItem(IDC_BTN_LISTEN);
+	CWnd * pProgress = GetDlgSafeItem(IDC_PROGRESS_GENERATE);
+	if (pStcXunfei
+		&& pStcVoice
+		&& pCombVoicer
+		&& pStcSpeed
+		&& pEditSpeed
+		&& pStcPitch
+		&& pEditPitch
+		&& pEditContent
+		&& pBtnLoadFile
+		&& pBtnOpenPath
+		&& pBtnGenerate
+		&& pBtnListen
+		&& pProgress)
+	{
+		CRect rtClient;
+		GetClientRect(rtClient);
+		int nWholeWidth = rtClient.Width();
+		int nWholeHeight = rtClient.Height();
+		CRect rtTmp;
+		pStcXunfei->GetWindowRect(rtTmp);
+		int nStcXunFeiWidth = rtTmp.Width();
+		pStcVoice->GetWindowRect(rtTmp);
+		int nStcVoicerWidth = rtTmp.Width();
+		pCombVoicer->GetWindowRect(rtTmp);
+		int nCombVoicerWidth = rtTmp.Width();
+		pStcSpeed->GetWindowRect(rtTmp);
+		int nStcSpeedWidth = rtTmp.Width();
+		pEditSpeed->GetWindowRect(rtTmp);
+		int nEditSpeedWidth = rtTmp.Width();
+		pStcPitch->GetWindowRect(rtTmp);
+		int nStcPitchWidth = rtTmp.Width();
+		pEditPitch->GetWindowRect(rtTmp);
+		int nEditPitchWidth = rtTmp.Width();
+		int nBtnWidth = 80;
+		int nBtnHeight = 22;
+		int nGap = 3;
+		//顶部横排
+		int nFirstGap = (nWholeWidth - nStcXunFeiWidth - nStcVoicerWidth - nCombVoicerWidth - nStcSpeedWidth - nEditSpeedWidth - nStcPitchWidth - nEditPitchWidth - nGap * 5) / 3;
+		pStcXunfei->MoveWindow(nGap, nGap, nStcXunFeiWidth, nBtnHeight);
+		pStcVoice->MoveWindow(nGap + nStcXunFeiWidth + nFirstGap, nGap, nStcVoicerWidth, nBtnHeight);
+		pCombVoicer->MoveWindow(nGap + nStcXunFeiWidth + nFirstGap + nStcVoicerWidth + nGap, nGap, nCombVoicerWidth, nBtnHeight);
+		pStcSpeed->MoveWindow(nGap + nStcXunFeiWidth + nFirstGap + nStcVoicerWidth + nGap + nCombVoicerWidth + nFirstGap, nGap, nStcSpeedWidth, nBtnHeight);
+		pEditSpeed->MoveWindow(nGap + nStcXunFeiWidth + nFirstGap + nStcVoicerWidth + nGap + nCombVoicerWidth + nFirstGap + nStcSpeedWidth + nGap, nGap, nEditSpeedWidth, nBtnHeight);
+		pStcPitch->MoveWindow(nGap + nStcXunFeiWidth + nFirstGap + nStcVoicerWidth + nGap + nCombVoicerWidth + nFirstGap + nStcSpeedWidth + nGap + nEditSpeedWidth + nFirstGap, nGap, nStcPitchWidth, nBtnHeight);
+		pEditPitch->MoveWindow(nGap + nStcXunFeiWidth + nFirstGap + nStcVoicerWidth + nGap + nCombVoicerWidth + nFirstGap + nStcSpeedWidth + nGap + nEditSpeedWidth + nFirstGap + nStcPitchWidth + nGap, nGap, nEditPitchWidth, nBtnHeight);
+		//中间
+		pEditContent->MoveWindow(nGap, nGap + nBtnHeight + nGap, nWholeWidth - nGap * 2, nWholeHeight - nGap * 4 - nBtnHeight * 2);
+		//底部横排
+		int nBottomGap = nWholeWidth - nBtnWidth * 4 - nGap * 4;
+		pBtnLoadFile->MoveWindow(nGap, nWholeHeight - nGap - nBtnHeight, nBtnWidth, nBtnHeight);
+		pBtnOpenPath->MoveWindow(nGap + nBtnWidth + nGap, nWholeHeight - nGap - nBtnHeight, nBtnWidth, nBtnHeight);
+		pProgress->MoveWindow(nGap + nBtnWidth + nGap + nBtnWidth + nGap, nWholeHeight - nGap - nBtnHeight, nBottomGap - nGap, nBtnHeight);
+		pBtnGenerate->MoveWindow(nGap + nBtnWidth + nGap + nBtnWidth + nBottomGap, nWholeHeight - nGap - nBtnHeight, nBtnWidth, nBtnHeight);
+		pBtnListen->MoveWindow(nGap + nBtnWidth + nGap + nBtnWidth + nBottomGap + nBtnWidth + nGap, nWholeHeight - nGap - nBtnHeight, nBtnWidth, nBtnHeight);
+	}
+	Invalidate(FALSE);
+}
+
+CWnd * CVoiceGeneratorDlg::GetDlgSafeItem(int nID)
+{
+	CWnd * pWnd = GetDlgItem(nID);
+	if (pWnd && ::IsWindow(pWnd->GetSafeHwnd()))
+	{
+		return pWnd;
+	}
+	return NULL;
+}
+
 BOOL CVoiceGeneratorDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -224,6 +340,8 @@ BOOL CVoiceGeneratorDlg::OnInitDialog()
 		}
 		pCombo->SetCurSel(0);
 	}
+	m_ctrProgress.SetRange(0, 100);
+	InitialLayout();
 
 	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
 	//  执行此操作
@@ -284,8 +402,22 @@ HCURSOR CVoiceGeneratorDlg::OnQueryDragIcon()
 
 
 
+void CVoiceGeneratorDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+	InitialLayout();
+}
+
+void CVoiceGeneratorDlg::OnDestroy()
+{
+	CString strBinPath = SYCGlobalFunction::GetCurPath();
+	CString strAudioPath = strBinPath + _T("\\Audio");
+	SYCGlobalFunction::DeleteFileOrPath(strAudioPath);
+}
+
 void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
 {
+	CWaitCursor waitCursor;
 	CEdit * pEditSpeed = (CEdit *)GetDlgItem(IDC_EDIT_SPEED);
 	CEdit * pEditPitch = (CEdit *)GetDlgItem(IDC_EDIT_PITCH);
 	CComboBox * pComboVoicer = (CComboBox *)GetDlgItem(IDC_COMBO_VOICER);
@@ -308,7 +440,6 @@ void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
 		std::vector<CString> vecContent;
 		CString strTmp;
 		pEditSrc->GetWindowText(strTmp);
-		strTmp.Replace(_T('\r'), _T(''));
 		std::vector<CString> vecStrContent = SYCGlobalFunction::SplitCString(strTmp, m_setSplitMark, FALSE);
 		if(GenerateAudio(vecStrContent, strVoicer, dwSpeed, dwPitch))
 		{
