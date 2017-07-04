@@ -23,10 +23,12 @@ public:
 protected:
 	HICON m_hIcon;
 	BOOL m_bIsPlaying;
+	std::vector<std::pair<CString, CString>> m_vecPairVoicer;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
-	void GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName = _T("xiaoyan"), DWORD dwSpeed = 50, DWORD dwPitch = 50);
+	BOOL GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName = _T("xiaoyan"), DWORD dwSpeed = 50, DWORD dwPitch = 50);
+	void ReadConfig();
 
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();

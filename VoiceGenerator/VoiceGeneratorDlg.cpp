@@ -14,6 +14,8 @@
 #define new DEBUG_NEW
 #endif
 
+const static int MAX_SECTION = 6000;//段的最大长度
+
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -75,8 +77,9 @@ END_MESSAGE_MAP()
 
 // CVoiceGeneratorDlg 消息处理程序
 
-void CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName/* = _T("xiaoyan")*/, DWORD dwSpeed/* = 50*/, DWORD dwPitch/* = 50*/)
+BOOL CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName/* = _T("xiaoyan")*/, DWORD dwSpeed/* = 50*/, DWORD dwPitch/* = 50*/)
 {
+	BOOL bRet = FALSE;
 	CString strBinPath = SYCGlobalFunction::GetCurPath();
 	CString strAudioPath = strBinPath + _T("\\Audio\\");
 	CString strErr;
@@ -99,10 +102,56 @@ void CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CStri
 			vecFileList.push_back(strFilePath);
 		}
 	}
+	CString strRetFile = strAudioPath + _T("combined.wav");
+	if (SYCGlobalFunction::IsFileExists(strRetFile))
+	{
+		::DeleteFile(strRetFile);
+	}
 	if (vecFileList.size() > 0
 		&& vecFileList.size() == vecDwGap.size())
 	{
-		XunFei_Voive_CombineAudioFile(vecFileList, vecDwGap, 0, strAudioPath + _T("combined.wav"));
+		XunFei_Voive_CombineAudioFile(vecFileList, vecDwGap, 0, strRetFile);
+	}
+	if (SYCGlobalFunction::IsFileExists(strRetFile))
+	{
+		bRet = TRUE;
+	}
+	return bRet;
+}
+
+void CVoiceGeneratorDlg::ReadConfig()
+{
+	m_vecPairVoicer.clear();
+
+	CString strConfigPath = SYCGlobalFunction::GetCurPath() + _T("\\讯飞语音列表.ini");
+
+	CString strKey;
+	TCHAR tmpBuf[MAX_PATH] = {0};
+	TCHAR chKey[MAX_SECTION]={0};
+	TCHAR szKey[1024] = {0};
+	CString strSection = _T("发音人列表");
+
+	DWORD dwKeyBufferSize = GetPrivateProfileSection(strSection, chKey, MAX_SECTION, strConfigPath);
+	for (int n = 0, k = 0; n < dwKeyBufferSize; n++)
+	{
+		if (chKey[n] == 0)
+		{
+			szKey[k] = 0;
+			strKey = szKey;
+
+			CString strKeyName = strKey.Left(strKey.Find('='));
+			CString strKeyValue = strKey.Mid(strKey.Find('=') + 1);
+
+			m_vecPairVoicer.push_back(std::make_pair(strKeyName, strKeyValue));
+
+			ZeroMemory(szKey, 1024);
+			k = 0;
+		}
+		else
+		{
+			szKey[k] = chKey[n];
+			k++;
+		}
 	}
 }
 
@@ -130,47 +179,17 @@ BOOL CVoiceGeneratorDlg::OnInitDialog()
 		}
 	}
 
+	ReadConfig();
 	GetDlgItem(IDC_EDIT_SPEED)->SetWindowText(_T("50"));
 	GetDlgItem(IDC_EDIT_PITCH)->SetWindowText(_T("50"));
 	CComboBox * pCombo = (CComboBox *)GetDlgItem(IDC_COMBO_VOICER);
 	if (pCombo)
 	{
-		pCombo->AddString(_T("xiaoyan"));
-		pCombo->AddString(_T("xiaofeng"));
-		pCombo->AddString(_T("xiaoqi"));
-		pCombo->AddString(_T("vinn"));
-		pCombo->AddString(_T("vils"));
-		pCombo->AddString(_T("aisjiuxu"));
-		pCombo->AddString(_T("aisxping"));
-		pCombo->AddString(_T("aisjying"));
-		pCombo->AddString(_T("aisbabyxu"));
-		pCombo->AddString(_T("aisjinger"));
-		pCombo->AddString(_T("yefang"));
-		pCombo->AddString(_T("aisduck"));
-		pCombo->AddString(_T("aisxmeng"));
-		pCombo->AddString(_T("aismengchun"));
-		pCombo->AddString(_T("ziqi"));
-		pCombo->AddString(_T("aisduoxu"));
-		pCombo->AddString(_T("xiaoxin"));
-		pCombo->AddString(_T("xiaowanzi"));
-		pCombo->AddString(_T("dalong"));
-		pCombo->AddString(_T("xiaomei"));
-		pCombo->AddString(_T("aisxlin"));
-		pCombo->AddString(_T("xiaoqian"));
-		pCombo->AddString(_T("aisxrong"));
-		pCombo->AddString(_T("xiaokun"));
-		pCombo->AddString(_T("aisxqiang"));
-		pCombo->AddString(_T("aisxying"));
-		pCombo->AddString(_T("aiscatherine"));
-		pCombo->AddString(_T("vimary"));
-		pCombo->AddString(_T("henry"));
-		pCombo->AddString(_T("aistom"));
-		pCombo->AddString(_T("aisjohn"));
-		pCombo->AddString(_T("mariane"));
-		pCombo->AddString(_T("allabent"));
-		pCombo->AddString(_T("gabriela"));
-		pCombo->AddString(_T("abha"));
-		pCombo->AddString(_T("xiaoyun"));
+		for (int i = 0; i < m_vecPairVoicer.size(); i++)
+		{
+			CString strVoicer = m_vecPairVoicer[i].second;
+			pCombo->AddString(strVoicer);
+		}
 		pCombo->SetCurSel(0);
 	}
 
@@ -245,8 +264,8 @@ void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
 		&& pComboVoicer && ::IsWindow(pComboVoicer->GetSafeHwnd())
 		)
 	{
-		CString strVoicer;
-		pComboVoicer->GetWindowText(strVoicer);
+		int nSel = pComboVoicer->GetCurSel();
+		CString strVoicer = m_vecPairVoicer[nSel].first;
 		CString strSpeed;
 		pEditSpeed->GetWindowText(strSpeed);
 		DWORD dwSpeed = SYCGlobalFunction::ConvertCStringToInt(strSpeed);
@@ -261,8 +280,10 @@ void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
 		pEditSrc->GetWindowText(strTmp);
 		strTmp.Replace(_T('\r'), _T(''));
 		std::vector<CString> vecStrContent = SYCGlobalFunction::SplitCString(strTmp, setMark, FALSE);
-		GenerateAudio(vecStrContent, strVoicer, dwSpeed, dwPitch);
-		OnBnClickedBtnListen();
+		if(GenerateAudio(vecStrContent, strVoicer, dwSpeed, dwPitch))
+		{
+			AfxMessageBox(_T("生成成功"));
+		}
 	}
 }
 
