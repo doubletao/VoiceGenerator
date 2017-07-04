@@ -4,6 +4,7 @@
 
 #pragma once
 #include <vector>
+#include <set>
 
 // CVoiceGeneratorDlg 对话框
 class CVoiceGeneratorDlg : public CDialogEx
@@ -24,6 +25,7 @@ protected:
 	HICON m_hIcon;
 	BOOL m_bIsPlaying;
 	std::vector<std::pair<CString, CString>> m_vecPairVoicer;
+	std::set<TCHAR> m_setSplitMark;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();

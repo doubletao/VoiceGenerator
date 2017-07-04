@@ -130,28 +130,59 @@ void CVoiceGeneratorDlg::ReadConfig()
 	TCHAR tmpBuf[MAX_PATH] = {0};
 	TCHAR chKey[MAX_SECTION]={0};
 	TCHAR szKey[1024] = {0};
-	CString strSection = _T("发音人列表");
 
-	DWORD dwKeyBufferSize = GetPrivateProfileSection(strSection, chKey, MAX_SECTION, strConfigPath);
-	for (int n = 0, k = 0; n < dwKeyBufferSize; n++)
 	{
-		if (chKey[n] == 0)
+		CString strSection = _T("发音人列表");
+		DWORD dwKeyBufferSize = GetPrivateProfileSection(strSection, chKey, MAX_SECTION, strConfigPath);
+		for (int n = 0, k = 0; n < dwKeyBufferSize; n++)
 		{
-			szKey[k] = 0;
-			strKey = szKey;
+			if (chKey[n] == 0)
+			{
+				szKey[k] = 0;
+				strKey = szKey;
 
-			CString strKeyName = strKey.Left(strKey.Find('='));
-			CString strKeyValue = strKey.Mid(strKey.Find('=') + 1);
+				CString strKeyName = strKey.Left(strKey.Find('='));
+				CString strKeyValue = strKey.Mid(strKey.Find('=') + 1);
 
-			m_vecPairVoicer.push_back(std::make_pair(strKeyName, strKeyValue));
+				m_vecPairVoicer.push_back(std::make_pair(strKeyName, strKeyValue));
 
-			ZeroMemory(szKey, 1024);
-			k = 0;
+				ZeroMemory(szKey, 1024);
+				k = 0;
+			}
+			else
+			{
+				szKey[k] = chKey[n];
+				k++;
+			}
 		}
-		else
+	}
+
+	{
+		CString strSection = _T("分隔符列表");
+		DWORD dwKeyBufferSize = GetPrivateProfileSection(strSection, chKey, MAX_SECTION, strConfigPath);
+		for (int n = 0, k = 0; n < dwKeyBufferSize; n++)
 		{
-			szKey[k] = chKey[n];
-			k++;
+			if (chKey[n] == 0)
+			{
+				szKey[k] = 0;
+				strKey = szKey;
+
+				CString strKeyName = strKey.Left(strKey.Find('='));
+				CString strKeyValue = strKey.Mid(strKey.Find('=') + 1);
+
+				if (strKeyValue.GetLength() > 0)
+				{
+					m_setSplitMark.insert(strKeyValue[0]);
+				}
+
+				ZeroMemory(szKey, 1024);
+				k = 0;
+			}
+			else
+			{
+				szKey[k] = chKey[n];
+				k++;
+			}
 		}
 	}
 }
@@ -275,12 +306,10 @@ void CVoiceGeneratorDlg::OnBnClickedBtnGenerate()
 		DWORD dwPitch = SYCGlobalFunction::ConvertCStringToInt(strPitch);
 		//从两个控件中获取非空行
 		std::vector<CString> vecContent;
-		std::set<TCHAR> setMark;
-		setMark.insert(_T('\n'));
 		CString strTmp;
 		pEditSrc->GetWindowText(strTmp);
 		strTmp.Replace(_T('\r'), _T(''));
-		std::vector<CString> vecStrContent = SYCGlobalFunction::SplitCString(strTmp, setMark, FALSE);
+		std::vector<CString> vecStrContent = SYCGlobalFunction::SplitCString(strTmp, m_setSplitMark, FALSE);
 		if(GenerateAudio(vecStrContent, strVoicer, dwSpeed, dwPitch))
 		{
 			AfxMessageBox(_T("生成成功"));
