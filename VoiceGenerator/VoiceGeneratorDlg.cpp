@@ -91,7 +91,7 @@ BOOL CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CStri
 	{
 		CString strContent = vecStrContent[i];
 		CString strFilePath;
-		strFilePath.Format(_T("%s%s.wav"), strAudioPath, strContent);
+		strFilePath.Format(_T("%s%d.wav"), strAudioPath, i);
 		if (SYCGlobalFunction::IsFileExists(strFilePath))
 		{
 			::DeleteFile(strFilePath);
