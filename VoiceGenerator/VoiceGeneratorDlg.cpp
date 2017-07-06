@@ -15,6 +15,7 @@
 #endif
 
 const static int MAX_SECTION = 6000;//段的最大长度
+const int MAX_XUNFEI_WORDS = 2048;//讯飞单次最大装载字符数
 
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
@@ -81,7 +82,6 @@ END_MESSAGE_MAP()
 
 // CVoiceGeneratorDlg 消息处理程序
 
-const int MAX_XUNFEI_WORDS = 50;//讯飞单次最大装载字符数
 BOOL CVoiceGeneratorDlg::GenerateAudio(std::vector<CString> vecStrContent, CString strVoiceName/* = _T("xiaoyan")*/, DWORD dwSpeed/* = 50*/, DWORD dwPitch/* = 50*/)
 {
 	m_ctrProgress.SetPos(0);
