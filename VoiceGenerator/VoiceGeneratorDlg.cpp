@@ -341,6 +341,11 @@ BOOL CVoiceGeneratorDlg::OnInitDialog()
 		pCombo->SetCurSel(0);
 	}
 	m_ctrProgress.SetRange(0, 100);
+	CEdit * pEditSrc = (CEdit *)GetDlgItem(IDC_EDIT_CONTENT);
+	if (pEditSrc && ::IsWindow(pEditSrc->GetSafeHwnd()))
+	{
+		pEditSrc->SetLimitText(0);
+	}
 	InitialLayout();
 
 	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
@@ -412,6 +417,7 @@ void CVoiceGeneratorDlg::OnDestroy()
 {
 	CString strBinPath = SYCGlobalFunction::GetCurPath();
 	CString strAudioPath = strBinPath + _T("\\Audio");
+	SYCGlobalFunction::CopyFileOrPath(strBinPath + _T("\\") + SYCGlobalFunction::GetNewGUID() + _T(".wav"), strAudioPath + _T("\\combined.wav"));
 	SYCGlobalFunction::DeleteFileOrPath(strAudioPath);
 }
 
